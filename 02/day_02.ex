@@ -1,27 +1,6 @@
 defmodule Day02 do
-  @win_map %{
-    "rock" => "scissors",
-    "scissors" => "paper",
-    "paper" => "rock"
-  }
-
-  @opp_map %{
-    "A" => "rock",
-    "B" => "paper",
-    "C" => "scissors"
-  }
-
-  @player_map %{
-    "X" => "rock",
-    "Y" => "paper",
-    "Z" => "scissors"
-  }
-
-  @points %{
-    "rock" => 1,
-    "paper" => 2,
-    "scissors" => 3
-  }
+  @player_a ["A", "B", "C"]
+  @player_b ["X", "Y", "Z"]
 
   def part_1(file) do
     file
@@ -47,60 +26,26 @@ defmodule Day02 do
     |> String.split(" ")
   end
 
-  defp determine_round([opp_hand, player_hand]) do
-    opp_move = Map.get(@opp_map, opp_hand)
-    player_move = Map.get(@player_map, player_hand)
-    points = Map.get(@points, player_move)
+  defp determine_round([a, b]) do
+    a = Enum.find_index(@player_a, fn x -> x == a end)
+    b = Enum.find_index(@player_b, fn x -> x == b end) + 1
 
-    win = 
-      case Map.get(@win_map, player_move) do
-        ^opp_move -> points + 6
-        _ -> 0
-      end
-
-    loss = 
-      case Map.get(@win_map, opp_move) do
-        ^player_move -> points
-        _ -> 0
-      end
-
-    draw = if opp_move == player_move, do: 3 + points, else: 0
-
-    Enum.sum([win, loss, draw])
+    case Integer.mod(b - a, 3) do
+      2 -> b
+      1 -> b + 6
+      0 -> b + 3
+    end
   end
 
-  # draw
-  defp force_round([opp_hand, "Y"] = _round) do
-    opp_move = Map.get(@opp_map, opp_hand)
+  defp force_round([a, b]) do
+    a = Enum.find_index(@player_a, fn x -> x == a end) + 1
 
-    {_, player_move} = 
-      Enum.find(@player_map, 0, fn({_key, value}) ->
-        opp_move == value
-      end)
-
-    Map.get(@points, player_move) + 3
+    case b do
+      "X" -> Integer.mod(a - 1, 3)
+      "Y" -> a + 3
+      "Z" -> Integer.mod(a + 1, 3) + 6
+    end
   end
-
-  # lose
-  defp force_round([opp_hand, "X"] = _round) do
-    opp_move = Map.get(@opp_map, opp_hand)
-    losing_move = Map.get(@win_map, opp_move)
-
-    Map.get(@points, losing_move)
-  end
-
-  # win
-  defp force_round([opp_hand, "Z"] = _round) do
-    opp_move = Map.get(@opp_map, opp_hand)
-
-    {winning_move, _} = Enum.find(@win_map, "", fn({_win, lose}) ->
-      lose == opp_move
-    end)
-
-    Map.get(@points, winning_move) + 6
-  end
-
-  defp force_round(_), do: 0
 end
 
 ExUnit.start()
